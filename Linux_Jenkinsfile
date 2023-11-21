@@ -1,0 +1,31 @@
+pipeline{
+	
+	agent any
+	
+	stages{
+		
+		stage('Start grid'){
+			steps{
+				sh "docker-compose -f grid.yaml up -d"
+				
+			}
+		}
+		
+		stage('Run tests'){
+			steps{
+				sh "docker-compose -f test_suite_for_linux_vm.yaml up --pull=always"			
+			}
+		}
+	}
+
+	post {
+		always {
+			sh "docker-compose -f grid.yaml down"
+			sh "docker-compose -f test_suite_for_linux_vm.yaml down"
+			archiveArtifacts artifacts: 'output/flight-reservation/emailable-report.html', followSymlinks: false
+			archiveArtifacts artifacts: 'output/vendorPortal/emailable-report.html', followSymlinks: false
+			
+		}
+	
+	}
+}
